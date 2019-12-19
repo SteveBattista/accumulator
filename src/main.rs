@@ -1,6 +1,7 @@
 
 
 //use accumulator::Witness;
+use accumulator::Witness;
 use std::convert::TryInto;
 use accumulator::Accumulator;
 use accumulator::group::Rsa2048;
@@ -18,50 +19,8 @@ fn random_vector (lenth:usize) -> Vec<usize>{
     answer
 }
 
-const SET_SIZE : usize = 100000;
-fn main() {
-    let mut rng = rand::thread_rng();
-    println!("Createing Vector of size {}", SET_SIZE);
-    let set = random_vector(SET_SIZE);
-    let target = set[rng.gen_range(0, set.len())];
-    println!("Target is {}",target);
-    let mut acc = Accumulator::<Rsa2048, usize>::empty();
-    //println!("Set: {:?}",set);
-    println!("Creating vector without target");
-    let set2 : Vec<usize> = set.clone().into_iter().filter (|&x| x!=target).collect();
-    let mut acc_2 = Accumulator::<Rsa2048, usize>::empty();
-    let progress_bar = ProgressBar::new(set.len().try_into().unwrap());
-    progress_bar.set_prefix("Creating full accumlator :");
-    progress_bar.set_style(
-        ProgressStyle::default_bar()
-            .template("{prefix} {wide_bar} {pos}/{len} {elapsed_precise} {eta_precise}"),
-    );
-    for item in &set{
-        acc = acc.clone().add(&[*item]);
-        progress_bar.inc(1);
-    }
-    progress_bar.finish();
-    println!("Publish full set accumlator {:?}", acc);
-    let progress_bar = ProgressBar::new(set2.len().try_into().unwrap());
-    progress_bar.set_prefix("Creating accumlator without target :");
-    progress_bar.set_style(
-        ProgressStyle::default_bar()
-            .template("{prefix} {wide_bar} {pos}/{len} {elapsed_precise} {eta_precise}"),
-    );
-    for item in set2{
-        acc_2 = acc_2.clone().add(&[item]);
-        progress_bar.inc(1);
-    }
-    progress_bar.finish();
-    //println!("Publish partial set accumlator {:?}", acc_2);
-    println!("Creating proof");
-    let (_acc_new, proof)  = acc_2.add_with_proof(&[target]);
-    println!("Sending proof {:?}", proof);
-    let answer = acc.verify_membership(&target,&proof);
-    println!("Verification is {}",answer);
-
-
-    /*println!("Creating subset witness");
+fn add_delete (acc: Accumulator::<Rsa2048, usize>,set: &[usize], target: usize ){
+    println!("Creating subset witness");
     let spinner = ProgressBar::new_spinner();
     spinner.set_prefix("Creating Witness:");
     spinner
@@ -72,14 +31,68 @@ fn main() {
 
 
     println!("Deleteing target");
-    acc = acc.clone().delete(&[(target,witness.clone())]).unwrap();
+    let acc_with_delete = acc.clone().delete(&[(target,witness.clone())]).unwrap();
 
 
     println!("Creating proof");
-    let (acc_new, proof)  = acc.clone().add_with_proof(&[target]);
+    let (acc_new, proof)  = acc_with_delete.clone().add_with_proof(&[target]);
 
     println!("Sending proof {:?}", proof);
     let answer = acc_new.verify_membership(&target,&proof);
-    println!("Verification is {}",answer); */
+    println!("Verification is {}",answer);
+}
+
+fn add_to_subset(acc: Accumulator::<Rsa2048, usize>,set: &[usize], target: usize ){
+    println!("Creating vector without target");
+    let set2 : Vec<usize> = set.into_iter().filter (|&x| *x!=target).cloned().collect();
+    let mut acc_2 = Accumulator::<Rsa2048, usize>::empty();
+
+    let progress_bar = ProgressBar::new(set2.len().try_into().unwrap());
+    progress_bar.set_prefix("Creating accumlator without target :");
+    progress_bar.set_style(
+        ProgressStyle::default_bar()
+            .template("{prefix} {wide_bar} {pos}/{len} {elapsed_precise} {eta_precise}"),
+    );
+    for item in set2{
+        acc_2 = acc_2.add(&[item]);
+        progress_bar.inc(1);
+    }
+    progress_bar.finish();
+
+    println!("Creating proof");
+    let (acc_new, proof)  = acc_2.clone().add_with_proof(&[target]);
+    println!("Publish full set accumlator ACC_NEW {:?}", acc_new);
+    println!("Sending proof #1 {:?}", proof);
+    let answer = acc.verify_membership(&target,&proof);
+    println!("Verification is {}",answer);
+}
+
+const SET_SIZE : usize = 1000;
+fn main() {
+    let mut rng = rand::thread_rng();
+    println!("Createing Vector of size {}", SET_SIZE);
+    let set = random_vector(SET_SIZE);
+    let target = set[rng.gen_range(0, set.len())];
+    println!("Target is {}",target);
+    let mut acc = Accumulator::<Rsa2048, usize>::empty();
+    let progress_bar = ProgressBar::new(set.len().try_into().unwrap());
+    progress_bar.set_prefix("Creating full accumlator :");
+    progress_bar.set_style(
+        ProgressStyle::default_bar()
+            .template("{prefix} {wide_bar} {pos}/{len} {elapsed_precise} {eta_precise}"),
+    );
+    for item in &set{
+        acc = acc.add(&[*item]);
+        progress_bar.inc(1);
+    }
+    progress_bar.finish();
+    println!("Publish full set accumlator ACC {:?}", acc);
+
+    add_to_subset(acc,&set,target)
+
+
+
+
+
 
 }

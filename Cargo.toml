@@ -11,3 +11,4 @@ accumulator = { git = "https://github.com/cambrian/accumulator.git", tag = "v0.2
 rand = "0.7.2"
 indicatif = "0.12.*"
 data-encoding = "2.1.*"
+pretty-bytes = "0.2.2"

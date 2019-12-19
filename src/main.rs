@@ -14,8 +14,10 @@ use rand::Rng;
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
+use pretty_bytes::converter::convert;
+
 const SPINNER_INTERVAL : u64 = 1000;
-const SET_SIZE : usize = 100_000;
+const SET_SIZE : usize = 10_000;
 
 fn acc_to_string(acc:&Accumulator::<Rsa2048, Uuid> )-> String{
     let string = format!("{:?}",*acc);
@@ -112,7 +114,7 @@ fn prove_membership(acc: Accumulator::<Rsa2048, Uuid>,set: &[Uuid], target: Uuid
     // Previous line takes too long. It is faster to use the add to subset it is 3-4 times faster
     //let witness = create_witness_for_target_in_accumlator(acc.clone(),target); This is invalid
     let membership_proof = acc.prove_membership(&[(target,witness)]).unwrap();
-    println!("Publishing membership_proof size {} value {}", membership_to_string(&membership_proof).len(), membership_to_string(&membership_proof));
+    println!("Publishing membership_proof size {}", convert((membership_to_string(&membership_proof).len()*2) as f64));
     let answer = acc.verify_membership(&target,&membership_proof);
     println!("Verification of membership proof is {}",answer);
 }
@@ -131,7 +133,7 @@ fn create_non_membership_poof(acc: Accumulator::<Rsa2048, Uuid>,set: &[Uuid], ta
 fn prove_nonmembership(acc: Accumulator::<Rsa2048, Uuid>,set: &[Uuid], target: Uuid){
 
     let non_membership_proof = create_non_membership_poof(acc.clone(),set,target);
-    println!("Publishing non_membership_proof size {} value {}",  non_membership_to_string(&non_membership_proof).len(), non_membership_to_string(&non_membership_proof));
+    println!("Publishing non_membership_proof size {}",  convert((non_membership_to_string(&non_membership_proof).len()*2) as f64));
     let answer = acc.verify_nonmembership(&[target],&non_membership_proof);
     println!("Verification of non_membership proof is {}",answer);
 }
@@ -164,8 +166,8 @@ fn add_to_subset(acc: Accumulator::<Rsa2048, Uuid>,set: &[Uuid], target: Uuid ){
 
     println!("Creating proof");
     let (acc_new, proof)  = acc_2.clone().add_with_proof(&[target]);
-    println!("Publish full set accumlator ACC_NEW size {} value {}", acc_to_string(&acc_new).len(),acc_to_string(&acc_new));
-    println!("Sending proof #1 size {} value {}", membership_to_string(&proof).len(), membership_to_string(&proof));
+    println!("Publish full set accumlator ACC_NEW size {}", convert((acc_to_string(&acc_new).len()*2) as f64));
+    println!("Sending proof #1 size {}", convert((membership_to_string(&proof).len()*2) as f64));
     let answer = acc.verify_membership(&target,&proof);
     println!("Verification is {}",answer);
 }
@@ -178,7 +180,7 @@ fn main() {
     let set = random_vector(SET_SIZE);
 
     let acc = create_accumulator_from_set (&set);
-    println!("Publish full set accumlator ACC size {} value {}", acc_to_string(&acc).len(), acc_to_string(&acc));
+    println!("Publish full set accumlator ACC size {}", convert((acc_to_string(&acc).len()*2) as f64));
 
     let target = select_random_item_from_set(&set);
     println!("Target is {}",target);

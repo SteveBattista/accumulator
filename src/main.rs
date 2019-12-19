@@ -1,6 +1,6 @@
 
 
-use accumulator::Witness;
+//use accumulator::Witness;
 use std::convert::TryInto;
 use accumulator::Accumulator;
 use accumulator::group::Rsa2048;
@@ -9,10 +9,10 @@ use rand::Rng;
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
-fn random_vector (lenght:usize) -> Vec<usize>{
+fn random_vector (lenth:usize) -> Vec<usize>{
     let mut answer :Vec<usize>= Vec::new();
     let mut rng = rand::thread_rng();
-    for _item in 0..lenght {
+    for _item in 0..lenth {
         answer.push(rng.gen::<usize>())
     }
     answer
@@ -58,7 +58,7 @@ fn main() {
     let (_acc_new, proof)  = acc_2.add_with_proof(&[target]);
     println!("Sending proof {:?}", proof);
     let answer = acc.verify_membership(&target,&proof);
-    println!("Answer {}",answer);
+    println!("Verification is {}",answer);
 
 
     /*println!("Creating subset witness");

@@ -17,7 +17,7 @@ use indicatif::ProgressStyle;
 use pretty_bytes::converter::convert;
 
 const SPINNER_INTERVAL : u64 = 1000;
-const SET_SIZE : usize = 10_000;
+const SET_SIZE : usize = 100_000;
 
 fn acc_to_string(acc:&Accumulator::<Rsa2048, Uuid> )-> String{
     let string = format!("{:?}",*acc);
